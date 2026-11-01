@@ -23,7 +23,7 @@ button.secondary{background:#353c41;color:white}button.danger{background:#632d27
 <main>
 <section class="panel"><h2>Доступные приложения</h2><div id="catalog">Загрузка каталога…</div></section>
 <section class="panel"><h2>Панель администратора</h2>
-<label>Ключ администратора</label><input id="key" type="password" autocomplete="off" placeholder="HELP_ADMIN_KEY">
+<label>Ключ администратора</label><input id="key" type="password" autocomplete="off" placeholder="HELP_ADMIN_KEY"><label style="display:flex;align-items:center;gap:8px"><input id="rememberKey" type="checkbox" style="width:auto"> Запомнить ключ на этом устройстве</label>
 <div class="grid"><div><label>Новая категория</label><input id="catName" placeholder="Например, Медиаплееры"></div><div style="align-self:end"><button id="addCat">Добавить категорию</button></div></div>
 <hr style="border-color:#353b3f;margin:22px 0">
 <label>Категория</label><select id="category"><option value="">Сначала добавьте категорию</option></select>
@@ -34,6 +34,10 @@ button.secondary{background:#353c41;color:white}button.danger{background:#632d27
 </section></main>
 <script>
 const $=id=>document.getElementById(id), key=()=> $('key').value;
+const savedKeyName='help_admin_key';
+try{const saved=localStorage.getItem(savedKeyName);if(saved){$('key').value=saved;$('rememberKey').checked=true}}catch{}
+$('key').addEventListener('change',()=>{try{if($('rememberKey').checked)localStorage.setItem(savedKeyName,key());else localStorage.removeItem(savedKeyName)}catch{}});
+$('rememberKey').addEventListener('change',()=>{try{if($('rememberKey').checked&&key())localStorage.setItem(savedKeyName,key());else localStorage.removeItem(savedKeyName)}catch{}});
 async function request(url,options={}){const r=await fetch(url,options);const d=await r.json();if(!r.ok)throw new Error(d.error||'Ошибка');return d}
 async function load(){
  const [cats,apps]=await Promise.all([request('/api/categories'),request('/api/apps')]);
