@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HELP — каталог приложений</title>
+<style>
+:root{color-scheme:dark;--bg:#111315;--panel:#1c2023;--orange:#ff8a24;--muted:#aab0b5}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#f4f4f4;font:16px Arial,sans-serif}
+header{padding:28px max(22px,calc((100% - 980px)/2));background:#191c1f;border-bottom:3px solid var(--orange)}
+h1{margin:0;color:var(--orange);font-size:30px}header p{margin:8px 0 0;color:var(--muted)}
+main{max-width:980px;margin:28px auto;padding:0 18px}.panel{background:var(--panel);border:1px solid #30363a;border-radius:14px;padding:22px;margin-bottom:20px}
+h2{margin:0 0 18px;font-size:21px}label{display:block;color:var(--muted);margin:12px 0 6px}
+input,select,textarea{width:100%;padding:12px;border-radius:8px;border:1px solid #454c51;background:#111518;color:white;font:inherit}
+textarea{min-height:70px;resize:vertical}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+button{margin-top:16px;background:var(--orange);color:#242424;border:0;border-radius:9px;padding:12px 18px;font-weight:bold;font-size:15px;cursor:pointer}
+button.secondary{background:#353c41;color:white}button.danger{background:#632d27;color:white}
+.item{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid #353b3f}.item:last-child{border:0}
+.muted{color:var(--muted);font-size:13px}.status{margin:12px 0;color:var(--orange);white-space:pre-wrap}
+@media(max-width:620px){.grid{grid-template-columns:1fr}.item{align-items:flex-start;flex-direction:column}}
+</style></head>
+<body>
+<header><h1>HELP</h1><p>Каталог приложений для Android и Android TV</p></header>
+<main>
+<section class="panel"><h2>Доступные приложения</h2><div id="catalog">Загрузка каталога…</div></section>
+<section class="panel"><h2>Панель администратора</h2>
+<label>Ключ администратора</label><input id="key" type="password" autocomplete="off" placeholder="HELP_ADMIN_KEY">
+<div class="grid"><div><label>Новая категория</label><input id="catName" placeholder="Например, Медиаплееры"></div><div style="align-self:end"><button id="addCat">Добавить категорию</button></div></div>
+<hr style="border-color:#353b3f;margin:22px 0">
+<label>Категория</label><select id="category"><option value="">Сначала добавьте категорию</option></select>
+<div class="grid"><div><label>Название приложения</label><input id="appName" placeholder="Название"></div><div><label>Версия</label><input id="version" placeholder="Например, 2.4.1"></div></div>
+<label>Описание (необязательно)</label><textarea id="description"></textarea>
+<label>APK-файл</label><input id="apk" type="file" accept=".apk,application/vnd.android.package-archive">
+<button id="upload">Загрузить APK</button><div id="status" class="status"></div>
+</section></main>
+<script>
+const $=id=>document.getElementById(id), key=()=> $('key').value;
+async function request(url,options={}){const r=await fetch(url,options);const d=await r.json();if(!r.ok)throw new Error(d.error||'Ошибка');return d}
+async function load(){
+ const [cats,apps]=await Promise.all([request('/api/categories'),request('/api/apps')]);
+ $('category').innerHTML=cats.map(c=>'<option value="'+c.id+'">'+esc(c.name)+' ('+c.appCount+')</option>').join('')||'<option value="">Сначала добавьте категорию</option>';
+ $('catalog').innerHTML=apps.length?apps.map(a=>'<div class="item"><div><b>'+esc(a.name)+'</b><div class="muted">'+esc(a.version||'')+' · '+esc(a.fileName)+'</div></div><span class="muted">'+(a.size/1048576).toFixed(1)+' МБ</span></div>').join(''):'<p class="muted">Пока приложений нет.</p>';
+}
+function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+$('addCat').onclick=async()=>{try{await request('/api/admin/categories',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':key()},body:JSON.stringify({name:$('catName').value})});$('catName').value='';$('status').textContent='Категория добавлена';await load()}catch(e){$('status').textContent=e.message}};
+$('upload').onclick=async()=>{try{const f=$('apk').files[0];if(!f)throw new Error('Выберите APK-файл');const fd=new FormData();fd.append('apk',f);fd.append('categoryId',$('category').value);fd.append('name',$('appName').value);fd.append('version',$('version').value);fd.append('description',$('description').value);await request('/api/admin/apps',{method:'POST',headers:{'x-admin-key':key()},body:fd});$('status').textContent='APK загружен';$('apk').value='';$('appName').value='';$('version').value='';$('description').value='';await load()}catch(e){$('status').textContent=e.message}};
+load().catch(e=>$('catalog').textContent=e.message);
+</script></body></html>
