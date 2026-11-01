@@ -58,11 +58,34 @@ public class MainActivity extends Activity {
     private void showStatus(String s){runOnUiThread(()->status.setText(s));}
     private String api(String p){return BuildConfig.API_BASE_URL+p;}
     private String get(String path)throws Exception{
-        HttpURLConnection c=(HttpURLConnection)new URL(api(path)).openConnection(); c.setConnectTimeout(12000); c.setReadTimeout(15000);
-        try{int code=c.getResponseCode(); if(code<200||code>=300)throw new Exception("HTTP "+code);
-            BufferedReader r=new BufferedReader(new InputStreamReader(c.getInputStream(),"UTF-8")); StringBuilder out=new StringBuilder(); String line;
-            while((line=r.readLine())!=null)out.append(line); r.close(); return out.toString();
-        }finally{c.disconnect();}
+        Exception last=null;
+        for(int attempt=1;attempt<=3;attempt++){
+            HttpURLConnection c=null;
+            try{
+                c=(HttpURLConnection)new URL(api(path)).openConnection();
+                c.setConnectTimeout(25000); c.setReadTimeout(30000);
+                c.setRequestProperty("Connection","close");
+                int code=c.getResponseCode();
+                if(code<200||code>=300){
+                    Exception http=new Exception("HTTP "+code);
+                    if(code<500)throw http;
+                    last=http;
+                }else{
+                    BufferedReader reader=new BufferedReader(new InputStreamReader(c.getInputStream(),"UTF-8"));
+                    StringBuilder out=new StringBuilder(); String line;
+                    while((line=reader.readLine())!=null)out.append(line);
+                    reader.close(); return out.toString();
+                }
+            }catch(Exception e){
+                if(e.getMessage()!=null && e.getMessage().startsWith("HTTP 4"))throw e;
+                last=e;
+            }finally{if(c!=null)c.disconnect();}
+            if(attempt<3){
+                showStatus("Сервер просыпается… повторная попытка "+(attempt+1)+" из 3");
+                try{Thread.sleep(attempt*4000L);}catch(InterruptedException e){Thread.currentThread().interrupt();throw e;}
+            }
+        }
+        throw new Exception("Сервер временно недоступен после 3 попыток",last);
     }
     private void loadCategories(){
         selectedCategory=null; heading.setText("Категории приложений"); content.removeAllViews(); showStatus("Загрузка каталога…");
@@ -73,7 +96,7 @@ public class MainActivity extends Activity {
                     String id=o.optString("id"), name=o.optString("name","Категория"); Button b=button(name+"   ›");
                     b.setOnClickListener(v->loadApps(id,name)); content.addView(b);
                 }});
-        }catch(Exception e){showStatus("Нет связи с сервером. Проверьте адрес API.");}}).start();
+        }catch(Exception e){showStatus("Сервер пока не отвечает. Подождите и нажмите «Повторить» или перезапустите приложение.");}}).start();
     }
     private void loadApps(String id,String categoryName){
         selectedCategory=id; heading.setText(categoryName); content.removeAllViews(); Button back=button("‹  Все категории");
