@@ -67,7 +67,7 @@ public class MainActivity extends Activity {
     private void loadCategories(){
         selectedCategory=null; heading.setText("Категории приложений"); content.removeAllViews(); showStatus("Загрузка каталога…");
         new Thread(()->{try{
-            JSONArray a=new JSONObject(get("api/categories")).optJSONArray("categories"); if(a==null)a=new JSONArray(); JSONArray items=a;
+            JSONArray items=new JSONArray(get("api/categories"));
             runOnUiThread(()->{content.removeAllViews(); status.setText(items.length()==0?"Категорий пока нет":"");
                 for(int n=0;n<items.length();n++){JSONObject o=items.optJSONObject(n); if(o==null)continue;
                     String id=o.optString("id"), name=o.optString("name","Категория"); Button b=button(name+"   ›");
@@ -79,7 +79,7 @@ public class MainActivity extends Activity {
         selectedCategory=id; heading.setText(categoryName); content.removeAllViews(); Button back=button("‹  Все категории");
         back.setOnClickListener(v->loadCategories()); content.addView(back); showStatus("Загрузка приложений…");
         new Thread(()->{try{
-            JSONArray a=new JSONObject(get("api/apps?categoryId="+Uri.encode(id))).optJSONArray("apps"); if(a==null)a=new JSONArray(); JSONArray items=a;
+            JSONArray items=new JSONArray(get("api/apps?categoryId="+Uri.encode(id)));
             runOnUiThread(()->{while(content.getChildCount()>1)content.removeViewAt(1); status.setText(items.length()==0?"Приложений пока нет":"");
                 for(int n=0;n<items.length();n++){JSONObject o=items.optJSONObject(n);if(o==null)continue;
                     String appId=o.optString("id"),name=o.optString("name","Приложение"),version=o.optString("version",""),desc=o.optString("description","");
