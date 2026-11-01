@@ -96,7 +96,11 @@ public class MainActivity extends Activity {
                     String id=o.optString("id"), name=o.optString("name","Категория"); Button b=button(name+"   ›");
                     b.setOnClickListener(v->loadApps(id,name)); content.addView(b);
                 }});
-        }catch(Exception e){showStatus("Сервер пока не отвечает. Подождите и нажмите «Повторить» или перезапустите приложение.");}}).start();
+        }catch(Exception e){runOnUiThread(()->{
+            status.setText("Сервер пока не отвечает. Render может запускаться после простоя.");
+            content.removeAllViews(); Button retry=button("Повторить подключение");
+            retry.setOnClickListener(v->loadCategories()); content.addView(retry);
+        });}}).start();
     }
     private void loadApps(String id,String categoryName){
         selectedCategory=id; heading.setText(categoryName); content.removeAllViews(); Button back=button("‹  Все категории");
@@ -108,7 +112,10 @@ public class MainActivity extends Activity {
                     String appId=o.optString("id"),name=o.optString("name","Приложение"),version=o.optString("version",""),desc=o.optString("description","");
                     Button b=button(name+(version.isEmpty()?"":"  ·  "+version)); b.setOnClickListener(v->showApp(appId,name,version,desc));content.addView(b);
                 }});
-        }catch(Exception e){showStatus("Ошибка загрузки списка приложений");}}).start();
+        }catch(Exception e){runOnUiThread(()->{
+            status.setText("Не удалось загрузить приложения. Сервер может ещё запускаться.");
+            Button retry=button("Повторить загрузку"); retry.setOnClickListener(v->loadApps(id,categoryName)); content.addView(retry);
+        });}}).start();
     }
     private void showApp(String id,String name,String version,String description){
         content.removeAllViews(); Button back=button("‹  Назад"); back.setOnClickListener(v->loadApps(selectedCategory,heading.getText().toString())); content.addView(back);
