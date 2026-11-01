@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: help-apk-catalog
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: HELP_ADMIN_KEY
+        generateValue: true
