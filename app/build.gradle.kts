@@ -8,7 +8,7 @@ android {
         targetSdk = 28
         versionCode = 1
         versionName = "1.0.0"
-        buildConfigField("String", "API_BASE_URL", "\"https://YOUR-HELP-SERVER.example/\"")
+        buildConfigField("String", "API_BASE_URL", "\"https://help-apk-catalog.onrender.com/\"")
     }
     buildFeatures { buildConfig = true }
     compileOptions {
