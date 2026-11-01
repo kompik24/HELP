@@ -16,7 +16,7 @@ const CATALOG_FILE = path.join(DATA_DIR, 'catalog.json');
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 if (!fs.existsSync(CATALOG_FILE)) fs.writeFileSync(CATALOG_FILE, JSON.stringify({ categories: [], apps: [] }, null, 2));
 
-app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+app.use(helmet({ contentSecurityPolicy: false, crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(cors());
 app.use(express.json({ limit: '1mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
