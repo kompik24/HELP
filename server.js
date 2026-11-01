@@ -4,6 +4,7 @@ const cors = require('cors');
 const multer = require('multer');
 const crypto = require('crypto');
 const path = require('path');
+const { Readable } = require('stream');
 const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
@@ -55,7 +56,7 @@ async function getCatalog() {
 }
 
 app.get('/api/health', (_req, res) => res.json({
-  ok: true, service: 'HELP', version: '1.1.0',
+  ok: true, service: 'HELP', version: '1.1.1',
   persistentStorageConfigured: Boolean(supabase)
 }));
 
@@ -86,9 +87,9 @@ app.get('/api/apps/:id/download', requireStorage, async (req, res) => {
     const { data, error: downloadError } = await supabase.storage.from(BUCKET).download(item.storage_path);
     if (downloadError) throw downloadError;
     res.setHeader('Content-Type', 'application/vnd.android.package-archive');
-    res.setHeader('Content-Disposition', 'attachment; filename="' + encodeURIComponent(item.file_name) + '"');
+    res.setHeader('Content-Disposition', 'attachment; filename*=UTF-8\'\'' + encodeURIComponent(item.file_name));
     res.setHeader('Content-Length', String(Number(item.size)));
-    data.stream().pipe(res);
+    Readable.fromWeb(data.stream()).pipe(res);
   } catch (e) { fail(res, e); }
 });
 
