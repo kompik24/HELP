@@ -15,7 +15,7 @@ textarea{min-height:70px;resize:vertical}.grid{display:grid;grid-template-column
 button{margin-top:16px;background:var(--orange);color:#242424;border:0;border-radius:9px;padding:12px 18px;font-weight:bold;font-size:15px;cursor:pointer}
 button.secondary{background:#353c41;color:white}button.danger{background:#632d27;color:white}
 .item{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid #353b3f}.item:last-child{border:0}
-.muted{color:var(--muted);font-size:13px}.category-manager{margin-top:14px}.category-manager summary{cursor:pointer;color:var(--muted);font-weight:bold;list-style:none;display:flex;align-items:center;gap:9px;padding:10px 0;user-select:none}.category-manager summary::-webkit-details-marker{display:none}.category-manager summary:before{content:"▶";font-size:12px;color:var(--orange);transition:transform .18s}.category-manager[open] summary:before{transform:rotate(90deg)}.category-manager #categoryList{padding-top:4px}.status{margin:12px 0;color:var(--orange);white-space:pre-wrap}
+.muted{color:var(--muted);font-size:13px}.category-manager{margin-top:14px}.category-toggle{display:flex;align-items:center;gap:9px;margin:0;padding:10px 0;background:transparent;color:var(--muted);font-weight:bold;border:0;border-radius:0;text-align:left}.category-toggle:hover{color:#fff}.category-manager #categoryList{padding-top:4px}.category-manager #categoryList[hidden]{display:none}.status{margin:12px 0;color:var(--orange);white-space:pre-wrap}
 @media(max-width:620px){.grid{grid-template-columns:1fr}.item{align-items:flex-start;flex-direction:column}}
 </style></head>
 <body>
@@ -24,7 +24,7 @@ button.secondary{background:#353c41;color:white}button.danger{background:#632d27
 <section class="panel"><h2>Доступные приложения</h2><div id="catalog">Загрузка каталога…</div></section>
 <section class="panel"><h2>Панель администратора</h2>
 <label>Ключ администратора</label><input id="key" type="password" autocomplete="off" placeholder="HELP_ADMIN_KEY"><label style="display:flex;align-items:center;gap:8px"><input id="rememberKey" type="checkbox" style="width:auto"> Запомнить ключ на этом устройстве</label>
-<div class="grid"><div><label>Новая категория</label><input id="catName" placeholder="Например, Медиаплееры"></div><div style="align-self:end"><button id="addCat">Добавить категорию</button></div></div>\n<details class="category-manager" open><summary>Управление категориями</summary><div id="categoryList"><p class="muted">Загрузка…</p></div></details>
+<div class="grid"><div><label>Новая категория</label><input id="catName" placeholder="Например, Медиаплееры"></div><div style="align-self:end"><button id="addCat">Добавить категорию</button></div></div>\n<div class="category-manager"><button type="button" id="categoryToggle" class="category-toggle" aria-expanded="false">▶ Управление категориями</button><div id="categoryList" hidden><p class="muted">Загрузка…</p></div></div>
 <hr style="border-color:#353b3f;margin:22px 0">
 <label>Категория</label><select id="category"><option value="">Сначала добавьте категорию</option></select>
 <div class="grid"><div><label>Название приложения</label><input id="appName" placeholder="Название"></div><div><label>Версия</label><input id="version" placeholder="Например, 2.4.1"></div></div>
@@ -34,6 +34,7 @@ button.secondary{background:#353c41;color:white}button.danger{background:#632d27
 </section></main>
 <script>
 const $=id=>document.getElementById(id), key=()=> $('key').value;
+$('categoryToggle').addEventListener('click',()=>{const list=$('categoryList');const expanded=$('categoryToggle').getAttribute('aria-expanded')==='true';$('categoryToggle').setAttribute('aria-expanded',String(!expanded));$('categoryToggle').textContent=(expanded?'▶':'▼')+' Управление категориями';list.hidden=expanded;});
 const savedKeyName='help_admin_key';
 try{const saved=localStorage.getItem(savedKeyName);if(saved){$('key').value=saved;$('rememberKey').checked=true}}catch{}
 $('key').addEventListener('change',()=>{try{if($('rememberKey').checked)localStorage.setItem(savedKeyName,key());else localStorage.removeItem(savedKeyName)}catch{}});
