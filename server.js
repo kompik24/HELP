@@ -139,6 +139,36 @@ app.post('/api/admin/apps', requireStorage, adminOnly, upload.single('apk'), asy
   }
 });
 
+
+app.delete('/api/admin/categories/:id', requireStorage, adminOnly, async (req, res) => {
+  try {
+    const { data: category, error: categoryError } = await supabase
+      .from('categories').select('id,name').eq('id', req.params.id).maybeSingle();
+    if (categoryError) throw categoryError;
+    if (!category) return res.status(404).json({ error: 'Категория не найдена' });
+
+    const { data: items, error: appsError } = await supabase
+      .from('apps').select('id,storage_path').eq('category_id', category.id);
+    if (appsError) throw appsError;
+
+    const storagePaths = [...new Set((items || []).map(item => item.storage_path).filter(Boolean))];
+    if (storagePaths.length) {
+      const { error: storageError } = await supabase.storage.from(BUCKET).remove(storagePaths);
+      if (storageError) throw new Error('Не удалось удалить APK-файлы. Категория и записи приложений сохранены: ' + storageError.message);
+    }
+
+    if (items && items.length) {
+      const { error: deleteAppsError } = await supabase.from('apps').delete().eq('category_id', category.id);
+      if (deleteAppsError) throw deleteAppsError;
+    }
+
+    const { error: deleteCategoryError } = await supabase.from('categories').delete().eq('id', category.id);
+    if (deleteCategoryError) throw deleteCategoryError;
+
+    res.json({ ok: true, category: category.name, deletedApps: (items || []).length, deletedFiles: storagePaths.length });
+  } catch (e) { fail(res, e); }
+});
+
 app.delete('/api/admin/apps/:id', requireStorage, adminOnly, async (req, res) => {
   try {
     const { data: item, error: lookupError } = await supabase.from('apps').select('storage_path').eq('id', req.params.id).maybeSingle();
