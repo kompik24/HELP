@@ -1,6 +1,7 @@
 package com.kompik24.help;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
@@ -49,6 +50,28 @@ public class MainActivity extends Activity {
         });
 
         webView.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public boolean onJsAlert(WebView view, String url, String message, android.webkit.JsResult result) {
+                new AlertDialog.Builder(MainActivity.this)
+                    .setMessage(message)
+                    .setPositiveButton("ОК", (dialog, which) -> result.confirm())
+                    .setOnCancelListener(dialog -> result.cancel())
+                    .show();
+                return true;
+            }
+
+            @Override
+            public boolean onJsConfirm(WebView view, String url, String message, android.webkit.JsResult result) {
+                new AlertDialog.Builder(MainActivity.this)
+                    .setTitle("Подтверждение")
+                    .setMessage(message)
+                    .setPositiveButton("Да", (dialog, which) -> result.confirm())
+                    .setNegativeButton("Отмена", (dialog, which) -> result.cancel())
+                    .setOnCancelListener(dialog -> result.cancel())
+                    .show();
+                return true;
+            }
+
             @Override
             public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback, FileChooserParams params) {
                 if (filePathCallback != null) filePathCallback.onReceiveValue(null);
