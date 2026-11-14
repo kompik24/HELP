@@ -6,11 +6,13 @@
   "private": true,
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder --win nsis"
+    "dist": "node prepare-icon.js && electron-builder --win nsis"
   },
   "devDependencies": {
     "electron": "^35.0.0",
-    "electron-builder": "^26.0.12"
+    "electron-builder": "^26.0.12",
+    "sharp": "^0.33.5",
+    "png-to-ico": "^2.1.8"
   },
   "build": {
     "appId": "com.kompik24.help",
@@ -23,8 +25,11 @@
       "package.json"
     ],
     "win": {
-      "target": ["nsis"],
-      "artifactName": "HELP-Setup-${version}.${ext}"
+      "target": [
+        "nsis"
+      ],
+      "artifactName": "HELP-Setup-${version}.${ext}",
+      "icon": "build/icon.ico"
     },
     "nsis": {
       "oneClick": false,
