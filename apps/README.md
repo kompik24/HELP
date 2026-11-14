@@ -15,6 +15,10 @@ GitHub Actions workflow `Build HELP apps` builds:
 
 Run it from GitHub: Actions → Build HELP apps → Run workflow. Download the APK and EXE from the workflow run's Artifacts section.
 
+## Branding
+
+Both installable apps now use the shared HELP orange-and-charcoal icon. The vector source is `apps/branding/help-icon.svg`; the Android launcher uses native vector/adaptive resources, and the Windows build generates its `.ico` file automatically before packaging.
+
 ## Important
 
 These are online clients: internet access and the HELP server are required. The Android build is a debug APK, suitable for initial installation/testing, not a signed Play Store release. A release signing key should be configured privately before publishing a production release.
